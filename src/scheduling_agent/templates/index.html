@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>序衡 · 合成排产工作台</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#workbench">跳到工作台</a>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">序</span><div><strong>序衡</strong><span>约束排产 · 原创本地参考工程</span></div></div>
+    <span class="environment">SYNTHETIC ONLY · NOT production</span>
+  </header>
+  <div class="safety-strip">绝非生产系统。仅原创合成数据与本地接收器；模拟完成 ≠ 设备实际加工，模拟目标改善 ≠ 现场收益。</div>
+  <main>
+    <section id="login-panel" class="login-panel" aria-labelledby="login-title">
+      <div><p class="eyebrow">LOCAL SCHEDULING LAB / R6</p><h1 id="login-title">把约束、证据与执行<br>放在同一张工作台。</h1><p class="lead">真实 CP-SAT 求解，独立约束验证。模型只选择受控工具，不能编造排程、修改情景或批准发布。</p><ul class="login-points"><li>整数分钟 / 整批数量 / 半开区间</li><li>主辅资源、换型、冻结与逐事件库存</li><li>人工审阅、发布、接收与合成执行各自独立</li></ul></div>
+      <form id="login-form" class="card login-card">
+        <h2>连接本地工作台</h2><p>使用本实例签发的令牌。身份与工厂权限以服务端为准。</p>
+        <label for="token">访问令牌</label><input id="token" type="password" autocomplete="off" spellcheck="false" maxlength="200" required>
+        <button id="connect-button" type="submit" class="primary">连接工作台</button>
+        <p class="muted">令牌仅保存在本页内存；不写入地址、存储、Cookie 或日志。退出或离开页面即清除。</p>
+      </form>
+    </section>
+    <div id="message" role="status" aria-live="polite"></div>
+    <div id="error-message" role="alert" hidden></div>
+    <div id="workbench" aria-busy="false" hidden>
+      <div class="workspace-heading"><div><p class="eyebrow">SCHEDULE / VERIFY / RELEASE</p><h1>排产证据工作台</h1><p id="identity" class="muted"></p></div><div class="button-row"><button id="reload-button" type="button">重新读取 / 恢复连接</button><button id="logout-button" type="button" class="quiet">退出并清除</button></div></div>
+      <div id="provider-summary" class="notice"></div>
+      <nav class="section-nav" aria-label="工作台分区"><a href="#source-section">01 来源与情景</a><a href="#task-section">02 Agent 取证</a><a href="#plan-section">03 独验排程</a><a href="#release-section">04 人工发布</a><a href="#audit-section">审计</a></nav>
+      <div id="stale-banner" class="warning" role="status" hidden></div>
+      <section id="source-section" class="card" aria-labelledby="source-title">
+        <div class="section-heading"><div><p class="eyebrow">01 / SOURCE & SCENARIO</p><h2 id="source-title">先固定来源，再选择情景</h2></div><span class="tag">人工授权 · 非模型参数</span></div>
+        <div class="source-grid"><div><label for="snapshot-select">来源快照</label><select id="snapshot-select"><option value="">请选择快照</option></select><div id="snapshot-summary" class="summary"></div></div>
+          <div><label for="scenario-select">显式选择排产情景</label><select id="scenario-select"><option value="">请选择情景</option><option value="baseline">baseline · 原始基线</option><option value="insert_order">insert_order · 授权插单</option><option value="machine_outage">machine_outage · 机器停机</option><option value="supply_delay">supply_delay · 供料延迟</option></select><p id="scenario-help" class="muted">示例参数从服务端读取；自定义输入须符合严格领域结构，模型不能改变选择。</p><label for="scenario-json">本次授权情景 JSON（可检查、编辑；最多 65,536 字符）</label><textarea id="scenario-json" rows="7" maxlength="65536" spellcheck="false" placeholder="选择情景后加载服务端参数"></textarea><button id="create-task" type="button" class="primary" disabled>只创建任务，不自动运行</button></div></div>
+        <details><summary>快照订单、资源与观察时间</summary><div id="snapshot-detail"></div></details>
+        <p class="muted">情景变更与人工补缺均保留源 observed_at_ms，不以浏览器时钟延长有效期。24 小时时效、未来时间、冻结冲突由服务端核验。</p>
+      </section>
+      <section id="task-section" class="card" aria-labelledby="task-title">
+        <div class="section-heading"><div><p class="eyebrow">02 / CONTROLLED AGENT</p><h2 id="task-title">九个工具，一条可追溯证据链</h2></div><span class="tag">7 项分析 + 补问 + 送审</span></div>
+        <label for="task-select">当前任务</label><select id="task-select"><option value="">请选择任务</option></select>
+        <div id="task-summary" class="summary"></div><div class="button-row"><button id="run-task" type="button" class="primary" disabled>显式运行任务</button><button id="cancel-task" type="button" class="danger" disabled>取消任务（不抹除未知用量）</button></div>
+        <p class="muted">另一进程遗留 running 时，可显式请求后端核验租约。活跃租约会返回 busy；未知调用不得盲目重试。取消在推理等待中仍可单独操作。</p>
+        <ol id="tool-chain" class="tool-chain"></ol>
+        <div id="solver-summary" class="notice"></div>
+        <form id="supplement-form" class="subpanel" hidden>
+          <h3>只补齐准确的缺失路径</h3><p>只接受非负整数字面量，不接受小数、布尔值或指数。一次填写全部缺失项；不覆盖已知值，不刷新源观察时间。补缺后须另行运行。</p>
+          <div id="supplement-fields" class="field-grid"></div><label for="supplement-note">补缺依据</label><textarea id="supplement-note" maxlength="2000" rows="2" required></textarea><button id="supplement-submit" type="submit" disabled>保存补缺，不自动运行</button>
+        </form>
+        <form id="reconcile-form" class="subpanel warning-panel" hidden>
+          <h3>管理员 · 未知模型调用对账</h3><p>仅限本 owner 与工厂。running / blocked / cancelled 的未知记录均可核查；是否仍有活跃租约由后端决定。取消不会把未知用量当作零。</p>
+          <div class="field-grid"><div><label for="reconcile-call">实际 call_id</label><input id="reconcile-call" maxlength="80" required></div><div><label for="reconcile-tokens">已核实 tokens（留空代表未知，不是 0；后端将保守计入剩余预算，可能耗尽预算）</label><input id="reconcile-tokens" inputmode="numeric" maxlength="6"></div></div><label for="reconcile-note">对账依据</label><textarea id="reconcile-note" rows="2" maxlength="2000" required></textarea><label class="check"><input id="reconcile-confirm" type="checkbox" required>我已人工核查该调用无可用结果；不要求自动再次调用模型</label><button id="reconcile-submit" type="submit" disabled>提交一次对账</button>
+        </form>
+        <details><summary>七项分析工具签发的完整证据</summary><div id="task-evidence"></div></details>
+      </section>
+      <section id="plan-section" class="card" aria-labelledby="plan-title">
+        <div class="section-heading"><div><p class="eyebrow">03 / VERIFIED PLAN</p><h2 id="plan-title">看已独验的计划，不看模型猜测</h2></div><span class="tag">原生 SVG · 精确证据</span></div>
+        <label for="recommendation-select">推荐 / 待审计划</label><select id="recommendation-select"><option value="">请选择推荐</option></select><div id="recommendation-summary" class="summary"></div>
+        <div id="comparison-summary"></div><div id="objective-comparison" class="table-scroll"></div>
+        <div class="chart-heading"><h3>机器甘特图</h3><div class="legend"><span class="setup-key">换型</span><span class="processing-key">加工</span><span>区间 [起点, 终点)，单位：分钟</span></div></div><p id="plan-binding" class="muted hash"></p><div id="gantt-chart" class="chart-scroll"></div>
+        <details><summary>逐工序精确时间与机器前驱</summary><div id="plan-slots" class="table-scroll"></div></details>
+        <h3>辅助资源占用</h3><p class="muted">由独验 activities 的真实需求区间累加；同时刻先释放再获取，虚线为服务端容量。</p><div id="resource-chart" class="chart-scroll"></div><details><summary>资源区间明细</summary><div id="resource-table" class="table-scroll"></div></details>
+        <h3>逐事件库存阶梯</h3><p class="muted">展示独验 inventory 中的实际 balance / received / consumed，非期末库存直线。各物料使用独立纵轴，不混用单位。</p><div id="inventory-chart" class="chart-scroll"></div><details><summary>库存收料 / 扣料 / 余额原始点</summary><div id="inventory-table" class="table-scroll"></div></details>
+        <div class="subpanel"><h3>送审前的合成模拟证据</h3><div id="simulation-summary"></div><p>这里只是所选计划在已编译情景下的只读模拟证据，不代表发布或执行。额外执行扰动验收使用后端 Python 模拟接口 / 测试；本页不提供未支持的扰动执行接口。</p></div>
+        <details><summary>未受信任的模型说明（纯文本，不能改变候选）</summary><p id="model-draft" class="draft"></p></details>
+      </section>
+      <section id="release-section" class="card" aria-labelledby="release-title">
+        <div class="section-heading"><div><p class="eyebrow">04 / HUMAN GATES</p><h2 id="release-title">审阅、发布、接收、执行不能合并</h2></div><span class="tag">图外人工动作</span></div>
+        <ol id="workflow-stages" class="workflow-stages"></ol>
+        <div class="two-column"><form id="review-form" class="subpanel"><h3>1. 人工审阅</h3><p>仅当前 owner 的 reviewer / admin。提交绑定当前推荐 content_hash；批准不会发送。</p><label for="review-decision">明确决定</label><select id="review-decision"><option value="">请选择批准或拒绝</option><option value="approved">批准 approved</option><option value="rejected">拒绝 rejected</option></select><label for="review-note">人工审阅说明</label><textarea id="review-note" rows="3" maxlength="2000" required></textarea><button id="review-submit" type="submit" disabled>只提交审阅决定</button></form>
+          <form id="publication-form" class="subpanel"><h3>2. 请求本地签名发布</h3><p>批准后独立确认，冻结唯一发布请求；本步骤不调用接收器。签名密钥和原始签名消息永不进入浏览器。</p><label class="check"><input id="publication-confirm" type="checkbox" required>确认发布当前已批准计划到本地合成接收流程</label><button id="request-publication" type="submit" disabled>创建发布请求，不递送</button></form></div>
+        <label for="publication-select">当前发布对象</label><select id="publication-select"><option value="">请选择发布对象</option></select><div id="publication-summary" class="summary"></div>
+        <div class="subpanel"><h3>3. 接收与独立回读</h3><p>首次本地递送：多工序仅部分接收。部分接收不占料、不执行；完成剩余接收后才取得保守整厂计划租约。结果 unknown 时只能先独立回读，不能盲目递送。</p><div class="button-row"><button id="deliver-publication" type="button" disabled>首次本地递送（通常部分接收）</button><button id="advance-publication" type="button" disabled>完成剩余接收</button><button id="readback-publication" type="button" disabled>独立回读接收器</button></div><div id="readback-summary"></div></div>
+        <div class="two-column"><form id="cancel-publication-form" class="subpanel"><h3>撤销尚未执行的发布</h3><label for="cancel-publication-note">撤销说明</label><textarea id="cancel-publication-note" maxlength="2000" rows="2" required></textarea><p>后端权威撤销；执行开始后返回 too_late，不回滚历史。</p><button id="cancel-publication" type="submit" class="danger" disabled>请求撤销发布</button></form><form id="execute-form" class="subpanel"><h3>4. 单独启动合成执行</h3><p>只有权威完整接收、有效来源与完整工厂租约才可执行。running 遗留不得自动重跑。</p><label class="check"><input id="execute-confirm" type="checkbox" required>明确确认运行原创离散事件模拟；这不是现场设备操作</label><button id="execute-publication" type="submit" class="primary" disabled>显式合成执行一次</button></form></div>
+        <h3>合成执行结果与事件</h3><div id="execution-summary"></div>
+      </section>
+      <section id="audit-section" class="card" aria-labelledby="audit-title"><div class="section-heading"><div><p class="eyebrow">AUDIT / OWNER + PLANT</p><h2 id="audit-title">审计记录</h2></div><span class="tag">后端持久化事实</span></div><p class="muted">刷新只读取对象，不自动调用模型、接收、回读或执行。管理员也不能隐式跨 owner 查看或操作。</p><div id="audit-list"></div></section>
+      <footer>序衡 · 原创合成排产参考 / 单机 SQLite 与本地接收器不承诺分布式 exactly-once，不证明现场因果收益。</footer>
+    </div>
+  </main>
+</body>
+</html>
