@@ -2,7 +2,7 @@
 
 ## 1. 工程身份和证据口径
 
-发行名 `production-scheduling-agent`，版本 `0.1.0`，Python 包 `scheduling_agent`，console entry 为 `production-scheduling = scheduling_agent.cli:main`。业务输入、排产服务及合成事件引擎为本项目原创参考实现；不含生产接入或现场收益声明。
+发行名 `production-scheduling-agent`，版本 `0.1.0`，Python 包 `scheduling_agent`，console entry 为 `production-scheduling = scheduling_agent.cli:main`。业务输入、排产服务及合成事件引擎属于本项目的本地 Demo／测试版；不含生产接入或现场收益声明。
 
 本文核对 [`pyproject.toml`](../pyproject.toml)、[`uv.lock`](../uv.lock) 和本机对应已安装发行物的许可元数据，不联网查询“最新版本”。第三方声明**不会给原创项目整体添加 MIT、Apache 或其他 blanket license**，也不等于完整 SBOM、逐文件许可审计、再分发授权或供应链安全证明。具体义务见实际发行物的 LICENSE/NOTICE，摘要见 [第三方声明](../THIRD_PARTY_NOTICES.md)。
 
